@@ -147,12 +147,9 @@ export async function POST(request) {
 
       // 3. Generate feedback via Gemini
       console.log(
-        `[stream-webhook] Sending transcript to Gemini (gemini-2.5-flash-lite)...`
+        `[stream-webhook] Sending transcript to Groq (llama-3.3-70b-versatile)...`
       );
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-lite",
-      });
+      const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
       const categories =
         booking.interviewer.categories?.join(", ") ?? "General";
 
@@ -171,18 +168,19 @@ Analyze the candidate's performance. Respond ONLY with a valid JSON object, no m
   "technical": "Assessment of technical knowledge and accuracy",
   "communication": "Assessment of clarity, structure, and communication style",
   "problemSolving": "Assessment of problem-solving approach and thought process",
-  "recommendation": "HIRE / CONSIDER / NO_HIRE with a one-sentence reason",
+  "recommendation": "HIRE or CONSIDER or NO_HIRE with a one-sentence reason",
   "strengths": ["strength 1", "strength 2", "strength 3"],
   "improvements": ["improvement 1", "improvement 2", "improvement 3"],
   "overallRating": "POOR or AVERAGE or GOOD or EXCELLENT"
 }`;
 
-      const result = await model.generateContent(prompt);
-      const raw = result.response
-        .text()
-        .trim()
-        .replace(/^```json|^```|```$/gm, "")
-        .trim();
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [{ role: "user", content: prompt }],
+        model: "llama-3.3-70b-versatile",
+        response_format: { type: "json_object" }
+      });
+
+      const raw = chatCompletion.choices[0]?.message?.content?.trim() || "";
 
       console.log(
         `[stream-webhook] Gemini raw response:\n${raw.slice(0, 500)}${
