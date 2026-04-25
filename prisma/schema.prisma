@@ -73,7 +73,7 @@ model User {
   updatedAt   DateTime @updatedAt
 
   // interviewee-only
-  credits                Int       @default(0)
+  credits                Int       @default(50)
   currentPlan            String    @default("free")
   creditsLastAllocatedAt DateTime?
 
@@ -84,7 +84,7 @@ model User {
   yearsExp      Int?
   categories    InterviewCategory[]
   creditRate    Int                 @default(1)
-  creditBalance Int                 @default(0)
+  creditBalance Int                 @default(50)
 
   availabilities        Availability[]
   bookingsAsInterviewee Booking[]           @relation("IntervieweeBookings")
