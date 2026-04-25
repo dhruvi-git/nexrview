@@ -1,6 +1,6 @@
 "use server";
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { currentUser } from "@clerk/nextjs/server";
 
 const CATEGORY_PROMPTS = {
@@ -26,8 +26,7 @@ export const generateInterviewQuestions = async ({ category }) => {
   if (!category || !CATEGORY_PROMPTS[category])
     throw new Error("Invalid category");
 
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
   const prompt = `You are an expert technical interviewer. Generate 6 interview questions for a ${category} role covering: ${CATEGORY_PROMPTS[category]}.
 
@@ -36,10 +35,23 @@ For each question, provide a concise but complete answer (2-4 sentences) that an
 Respond ONLY with a valid JSON array. No markdown, no backticks, no explanation. Example format:
 [{"question": "...", "answer": "..."}, {"question": "...", "answer": "..."}]`;
 
-  const result = await model.generateContent(prompt);
-  const text = result.response.text().trim();
+  const chatCompletion = await groq.chat.completions.create({
+    messages: [{ role: "user", content: prompt }],
+    model: "llama-3.3-70b-versatile",
+    response_format: { type: "json_object" }
+  });
+
+  const text = chatCompletion.choices[0]?.message?.content || "";
   const clean = text.replace(/^```json|^```|```$/gm, "").trim();
-  const questions = JSON.parse(clean);
+  let questions = [];
+  try {
+    const parsed = JSON.parse(clean);
+    // Groq json_object might return { questions: [...] } if it gets confused, try to handle it
+    questions = Array.isArray(parsed) ? parsed : (parsed.questions || parsed);
+  } catch (error) {
+    console.error("Failed to parse Groq response:", clean);
+    throw new Error("Failed to generate questions");
+  }
 
   return { questions };
 };
