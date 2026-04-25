@@ -1,79 +1,91 @@
 import "dotenv/config";
-import { PrismaClient } from "../lib/generated/prisma/client";
+import { PrismaClient } from "../lib/generated/prisma/client/index.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-// Replicate the same adapter pattern as lib/prisma.ts
-// Can't use @/ alias — seed runs outside Next.js
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const db = new PrismaClient({ adapter });
 
-// ── CHANGE THIS ───────────────────────────────────────────────────────────────
-const BOOKING_ID = "001";
-// ─────────────────────────────────────────────────────────────────────────────
-
-const feedback = {
-  summary:
-    "Dhruvi demonstrated a solid understanding of React fundamentals and component architecture. She approached problems methodically and showed good instincts around state management. With some refinement in system design and async patterns, he's well on track for a mid-level frontend role.",
-  technical:
-    "Strong grasp of React hooks, component lifecycle, and basic TypeScript. Handled the closure question confidently. Struggled slightly with the event loop explanation and needed hints on optimising a recursive tree traversal — but recovered well once guided.",
-  communication:
-    "Articulate and structured in most answers. Thinks out loud effectively, which made it easy to follow her reasoning. Occasionally jumped to implementation before fully exploring the problem space.",
-  problemSolving:
-    "Good instinct for breaking problems down. Chose sensible data structures for most questions. The dynamic programming problem was a stretch — he identified the overlapping subproblems but didn't arrive at a memoised solution independently.",
-  recommendation:
-    "Recommended for mid-level frontend roles at growth-stage startups. Not yet ready for senior FAANG interviews without deepening system design knowledge. Suggest focusing on: async JavaScript internals, large-scale component architecture, and DP patterns.",
-  strengths: [
-    "Strong React & hooks knowledge",
-    "Clear verbal communication",
-    "Systematic debugging approach",
-    "Good CSS & browser fundamentals",
-  ],
-  improvements: [
-    "System design depth",
-    "Async/event loop internals",
-    "Dynamic programming patterns",
-    "Ask clarifying questions upfront",
-  ],
-  overallRating: "GOOD", // POOR | AVERAGE | GOOD | EXCELLENT
-  sessionRating: 4,
-  sessionComment:
-    "Great session — Dhruvi was engaged and receptive to feedback. Would be happy to interview her again after she's done more system design prep.",
-};
-
 async function main() {
-  const booking = await db.booking.findUnique({
-    where: { id: BOOKING_ID },
-    select: { id: true, status: true },
-  });
+  console.log("Seeding dummy interviewers...");
 
-  if (!booking) {
-    console.error(`❌  No booking found with ID: ${BOOKING_ID}`);
-    process.exit(1);
+  // Create 3 dummy interviewers
+  const interviewers = [
+    {
+      clerkUserId: "mock_clerk_user_1",
+      email: "jane.doe@example.com",
+      name: "Jane Doe",
+      role: "INTERVIEWER",
+      imageUrl: "https://i.pravatar.cc/150?u=jane",
+      bio: "Senior Frontend Engineer with 8 years of experience building scalable UIs.",
+      title: "Senior Frontend Engineer",
+      company: "Meta",
+      yearsExp: 8,
+      categories: ["FRONTEND", "SYSTEM_DESIGN"],
+      creditRate: 2,
+    },
+    {
+      clerkUserId: "mock_clerk_user_2",
+      email: "john.smith@example.com",
+      name: "John Smith",
+      role: "INTERVIEWER",
+      imageUrl: "https://i.pravatar.cc/150?u=john",
+      bio: "Backend specialist focusing on distributed systems and high-throughput architectures.",
+      title: "Staff Software Engineer",
+      company: "Stripe",
+      yearsExp: 10,
+      categories: ["BACKEND", "SYSTEM_DESIGN", "DSA"],
+      creditRate: 3,
+    },
+    {
+      clerkUserId: "mock_clerk_user_3",
+      email: "alice.w@example.com",
+      name: "Alice Wang",
+      role: "INTERVIEWER",
+      imageUrl: "https://i.pravatar.cc/150?u=alice",
+      bio: "I love helping candidates crack the DSA interviews. Ex-Google interviewer.",
+      title: "Software Engineer III",
+      company: "Google",
+      yearsExp: 4,
+      categories: ["DSA", "BEHAVIORAL"],
+      creditRate: 1,
+    }
+  ];
+
+  for (const data of interviewers) {
+    const user = await db.user.upsert({
+      where: { email: data.email },
+      update: {},
+      create: data,
+    });
+    
+    // Add some future availabilities for each interviewer
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(10, 0, 0, 0);
+
+    const nextDay = new Date();
+    nextDay.setDate(nextDay.getDate() + 2);
+    nextDay.setHours(14, 0, 0, 0);
+
+    await db.availability.createMany({
+      data: [
+        {
+          interviewerId: user.id,
+          startTime: tomorrow,
+          endTime: new Date(tomorrow.getTime() + 60 * 60 * 1000), // +1 hour
+        },
+        {
+          interviewerId: user.id,
+          startTime: nextDay,
+          endTime: new Date(nextDay.getTime() + 60 * 60 * 1000), // +1 hour
+        }
+      ]
+    });
   }
 
-  const existing = await db.feedback.findUnique({
-    where: { bookingId: BOOKING_ID },
-  });
-
-  if (existing) {
-    console.error(`❌  Feedback already exists for booking: ${BOOKING_ID}`);
-    process.exit(1);
-  }
-
-  await db.$transaction([
-    db.feedback.create({
-      data: { bookingId: BOOKING_ID, ...feedback },
-    }),
-    db.booking.update({
-      where: { id: BOOKING_ID },
-      data: { status: "COMPLETED" },
-    }),
-  ]);
-
-  console.log(`✅  Feedback seeded for booking: ${BOOKING_ID}`);
-  console.log(`✅  Booking status → COMPLETED`);
+  console.log("✅ Successfully seeded 3 dummy interviewers with availabilities!");
 }
 
 main()
