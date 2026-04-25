@@ -1,5 +1,5 @@
 // app/api/webhooks/stream/route.js
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { db } from "@/lib/prisma";
 
 export async function POST(request) {
