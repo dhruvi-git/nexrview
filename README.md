@@ -1,4 +1,4 @@
-# Prept: AI-Powered Interview Marketplace 🚀
+# Nexrview: AI-Powered Interview Marketplace 🚀
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.1.6-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
@@ -6,7 +6,7 @@
 [![Stream](https://img.shields.io/badge/Stream_Video_&_Chat-005FFF?style=for-the-badge&logo=stream)](https://getstream.io/)
 [![Clerk](https://img.shields.io/badge/Clerk_Auth-6C47FF?style=for-the-badge&logo=clerk)](https://clerk.com/)
 
-Prept is an industry-grade, AI-driven mock interview marketplace that connects candidates with senior engineers. It leverages real-time HD video, an integrated credit system, and dynamic AI co-pilots to provide an unparalleled mock interview experience.
+Nexrview is an industry-grade, AI-driven mock interview marketplace that connects candidates with senior engineers. It leverages real-time HD video, an integrated credit system, and dynamic AI co-pilots to provide an unparalleled mock interview experience.
 
 ---
 
@@ -88,8 +88,8 @@ graph TD
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/ai-interview-marketplace.git
-   cd ai-interview-marketplace
+   git clone https://github.com/your-username/nexrview.git
+   cd nexrview
    ```
 
 2. **Install dependencies**
