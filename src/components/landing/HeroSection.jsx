@@ -66,7 +66,7 @@ export function HeroSection() {
             <strong className="text-stone-400 font-medium">
               2,400+ engineers
             </strong>{" "}
-            cracked FAANG interviews via Prept
+            cracked FAANG interviews via Nexrview
           </p>
         </div>
       </div>
